@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
@@ -68,7 +69,7 @@ fun HomeScreen(navController: NavHostController) {
                 NavigationBarItem(
                     selected = false,
                     onClick = { navController.navigate("profile") },
-                    icon = { Icon(Icons.Default.Person, contentDescription = "Home") },
+                    icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Home") },
                     label = { Text("Profile") }
                 )
                 NavigationBarItem(
@@ -80,8 +81,8 @@ fun HomeScreen(navController: NavHostController) {
                 NavigationBarItem (
                     selected = false,
                     onClick = { /* Handle navigation */ },
-                    icon = { Icon(Icons.Default.Menu, contentDescription = "Home") },
-                    label = { Text("Menu") }
+                    icon = { Icon(Icons.Default.Person, contentDescription = "Group") },
+                    label = { Text("Group") }
                 )
             }
         }
