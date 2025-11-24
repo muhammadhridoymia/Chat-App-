@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -80,9 +81,9 @@ fun HomeScreen(navController: NavHostController) {
                 )
                 NavigationBarItem (
                     selected = false,
-                    onClick = { /* Handle navigation */ },
-                    icon = { Icon(Icons.Default.Person, contentDescription = "Group") },
-                    label = { Text("Group") }
+                    onClick = { navController.navigate("notification") },
+                    icon = { Icon(Icons.Default.Notifications, contentDescription = "Notifications") },
+                    label = { Text("Notifications")}
                 )
             }
         }

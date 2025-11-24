@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +29,10 @@ fun ProfileScreen(navController: NavHostController) {
                 color = Color.White,
                 modifier = Modifier.padding(start = 10.dp)
                 )
+            Divider(
+                color = Color.White,
+                thickness = 1.dp,
+            )
             Spacer(modifier = Modifier.height(20.dp))
             Row(
                 modifier = Modifier

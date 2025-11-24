@@ -2,11 +2,14 @@ package com.example.chatapp
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.composable
+
+//Screens
 import com.example.chatapp.user.HomeScreen
 import com.example.chatapp.user.ProfileScreen
+import com.example.chatapp.user.NotificationsScreen
+
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import androidx.navigation.NavHost
 import androidx.navigation.compose.rememberNavController
 
 
@@ -22,6 +25,9 @@ fun navigation (){
         }
         composable("profile"){
             ProfileScreen(navController=navController)
+        }
+        composable("notification"){
+            NotificationsScreen()
         }
     }
 }
