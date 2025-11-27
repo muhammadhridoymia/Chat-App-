@@ -7,14 +7,18 @@ import androidx.navigation.compose.composable
 import com.example.chatapp.user.HomeScreen
 import com.example.chatapp.user.ProfileScreen
 import com.example.chatapp.user.NotificationsScreen
+import  com.example.chatapp.user.MessagePage
+
 
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 
 
 @Composable
-fun navigation (){
+fun Navigation(){
     val navController: NavHostController = rememberNavController()
     NavHost(
         navController = navController,
@@ -29,6 +33,12 @@ fun navigation (){
         composable("notification"){
             NotificationsScreen()
         }
+        composable(
+            route = "message/{name}",
+            arguments = listOf(navArgument("name") { type = NavType.StringType })
+        ){ backStackEntry ->
+            val name = backStackEntry.arguments?.getString("name")
+            MessagePage( name = name ?: "")
+        }
     }
 }
-

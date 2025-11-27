@@ -130,7 +130,7 @@ fun HomeScreen(navController: NavHostController) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(activeUsers) { user ->
-                    ActiveUserItem(user)
+                    ActiveUserItem(user=user,navController=navController)
                 }
             }
 
@@ -146,7 +146,7 @@ fun HomeScreen(navController: NavHostController) {
                 }
 
                 items(filteredChats) { chat ->
-                    ChatItem(chat)
+                    ChatItem(chat=chat, navController = navController)
                 }
             }
         }

@@ -18,15 +18,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.chatapp.user.Chat
 
 @Composable
-fun ChatItem(chat: Chat) {
+fun ChatItem(chat: Chat, navController: NavHostController) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable { /* Handle chat click */ },
+            .clickable { navController.navigate("message/${chat.name}") },
     ) {
         // Circle avatar placeholder
         Box(

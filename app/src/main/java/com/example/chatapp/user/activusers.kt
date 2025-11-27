@@ -25,11 +25,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 
 @Composable
-fun ActiveUserItem(user: ActiveUser) {
+fun ActiveUserItem(user: ActiveUser,navController: NavHostController) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .clickable { /* Handle user click */ }
+            .clickable { navController.navigate("message/${user.name}") }
     ) {
         Box(
             modifier = Modifier
