@@ -10,7 +10,7 @@ import com.example.chatapp.user.ProfileScreen
 import com.example.chatapp.user.NotificationsScreen
 import  com.example.chatapp.user.MessagePage
 import  com.example.chatapp.auth.LoginScreen
-import com.example.chatapp.user.LoadingScreen
+import com.example.chatapp.auth.SigninScreen
 
 
 
@@ -62,7 +62,7 @@ fun Navigation() {
         }
 
         composable("login") {
-            LoginScreen(
+            LoginScreen(navController=navController,
                 onLoginSuccess = {
                     navController.navigate("home") {
                         popUpTo("login") {
@@ -71,6 +71,9 @@ fun Navigation() {
                     }
                 }
             )
+        }
+        composable("signin") {
+            SigninScreen(navController=navController)
         }
     }
 }

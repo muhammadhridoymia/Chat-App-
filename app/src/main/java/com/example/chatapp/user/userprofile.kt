@@ -1,5 +1,6 @@
 package com.example.chatapp.user
 
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -8,15 +9,22 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.chatapp.LoginDataStore
+import kotlinx.coroutines.launch
 
 
 @Composable
 fun ProfileScreen(navController: NavHostController) {
+    val context= LocalContext.current
+    val scop= rememberCoroutineScope()
+
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
@@ -38,7 +46,6 @@ fun ProfileScreen(navController: NavHostController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 10.dp)
-                    .background(Color(0xFF259534), shape = CircleShape)
             ) {
                 Box(
                     modifier = Modifier
@@ -148,21 +155,15 @@ fun ProfileScreen(navController: NavHostController) {
                 color = Color.Red,
                 modifier = Modifier.padding(start = 10.dp)
             )
-            Spacer(modifier = Modifier.height(20.dp))
-            Text("◉ Log out",
-                fontSize = 20.sp,
-                color = Color.Red,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
 
             Button(
-                onClick = { navController.navigate("home") },
+                onClick = { scop.launch { LoginDataStore.clearEmail(context) }},
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(color = Color.Red)
                     .padding(horizontal = 30.dp, vertical = 20.dp)
             ) {
-                Text("Back")
+                Text("Log Out")
             }
         }
     }

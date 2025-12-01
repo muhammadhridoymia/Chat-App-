@@ -1,13 +1,10 @@
 package com.example.chatapp.auth
 
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -15,24 +12,31 @@ import com.example.chatapp.LoginDataStore
 import kotlinx.coroutines.launch
 
 @Composable
-fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit ) {
+fun SigninScreen(navController: NavHostController) {
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
+    var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     Column(
         Modifier
             .fillMaxSize()
-            .background(color=Color.White)
             .padding(20.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        verticalArrangement = Arrangement.Center
     ) {
 
-        Text("Log In", style = MaterialTheme.typography.headlineMedium)
+        Text("Sign In", style = MaterialTheme.typography.headlineMedium)
+
+        Spacer(Modifier.height(20.dp))
+
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Name") }
+        )
 
         Spacer(Modifier.height(20.dp))
 
@@ -52,23 +56,18 @@ fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit ) {
 
         Spacer(Modifier.height(20.dp))
 
-        Button(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = {
+        Button(onClick = {
             if (email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(context, "Enter email and password", Toast.LENGTH_SHORT).show()
             } else {
-                // Save email in DataStore
-                scope.launch {
-                    LoginDataStore.saveEmail(context, email)
-                    onLoginSuccess()
-                }
+                // Save data in DataStore
             }
         }) {
-            Text("Login")
+            Text("Sign In")
         }
-        Button(onClick = { navController.navigate("signin") }) {
-            Text("Create Account")
+        Button(
+            onClick = { navController.navigate("login") }) {
+            Text("Back")
         }
     }
 }
