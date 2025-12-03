@@ -2,7 +2,9 @@ package com.example.chatapp.user
 
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
@@ -16,14 +18,34 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import  androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import com.example.chatapp.LoginDataStore
 import kotlinx.coroutines.launch
 
+data class sitting(
+    val name:String,
+    val menu:String
+)
+val SittingList= listOf(
+     sitting("Account" , menu = "Security notifications , Change number")
+    ,sitting("Privacy" , menu = "Block contacts , Disallow messages")
+    ,sitting("Chats" , menu = "Theme , wallpapers , chat history")
+    ,sitting("Notifications" , menu = "Message , group ,calls")
+    ,sitting("Avatars" , menu = "Create,edit ,profile photo")
+    ,sitting("Storage and data" , menu = "Network usage , auto-download")
+    ,sitting("Help" , menu = "FAQ , contact us , privacy policy")
+    ,sitting("Invite a friend" , menu = "")
+    ,sitting("Log out" , menu = "")
 
+)
 @Composable
 fun ProfileScreen(navController: NavHostController) {
-    val context= LocalContext.current
-    val scop= rememberCoroutineScope()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     Scaffold { paddingValues ->
         Column(
@@ -32,139 +54,73 @@ fun ProfileScreen(navController: NavHostController) {
                 .background(Color.Black)
                 .padding(paddingValues)
         ) {
-            Text("Profile",
-                fontSize = 30.sp,
-                color = Color.White,
-                modifier = Modifier.padding(start = 10.dp)
-                )
-            Divider(
-                color = Color.White,
-                thickness = 1.dp,
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Row(
-                modifier = Modifier
+            Row (
+                modifier = Modifier.padding(0.dp)
                     .fillMaxWidth()
-                    .padding(horizontal = 10.dp)
+                    .background(Color.Blue),
+
+            ){
+                IconButton(onClick = {navController.navigate("home") }) {
+                    Icon(Icons.Default.ArrowBack , contentDescription = "back")
+                }
+            }
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(60.dp)
-                        .background(Color.White, shape = CircleShape)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 16.dp)
-                ) {
-                    Text(
-                        text = "Hridoy",
-                        fontSize = 20.sp,
-                        color = Color.White
-                    )
-                    Text(
-                        "hridoy@gmail.com",
-                        fontSize = 10.sp,
-                        color = Color.White
-                    )
-                    Text("+88 01850511158",
-                        fontSize = 10.sp,
-                        color = Color.White
-                    )
+                items(SittingList) { list ->
+                    SittingOptins(list) {
+
+                        if (list.name == "Log out") {
+                            // Logout here
+                            scope.launch {
+                                LoginDataStore.clearEmail(context)   // <-- Clear DataStore
+                            }
+                            navController.navigate("login") {   // <-- Go to Login
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                "⚙\uFE0F Setting",
-                fontSize = 30.sp,
-                color = Color.White,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Text("◉ Add Number",
-                fontSize = 20.sp,
-                color = Color.Green,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                " ◉ Request",
-                fontSize = 20.sp,
-                color = Color.White,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                "◉ Create Group",
-                fontSize = 20.sp,
-                color = Color.White,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                "◉ Join Group",
-                fontSize = 20.sp,
-                color = Color.White,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Text("◉ Change Profile",
-                fontSize = 20.sp,
-                color = Color.White,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Text("◉ Change Password",
-                fontSize = 20.sp,
-                color = Color.White,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Text("◉ Help Services",
-                fontSize = 20.sp,
-                color = Color.White,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Text("◉ Notification",
-                fontSize = 20.sp,
-                color = Color.White,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Text("◉ Terms & Conditions",
-                fontSize = 20.sp,
-                color = Color.White,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Text("◉ Privacy Policy",
-                fontSize = 20.sp,
-                color = Color.White,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Text("◉ Delete Account",
-                fontSize = 20.sp,
-                color = Color.Red,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-
-            Button(
-                onClick = { scop.launch { LoginDataStore.clearEmail(context) }},
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(color = Color.Red)
-                    .padding(horizontal = 30.dp, vertical = 20.dp)
-            ) {
-                Text("Log Out")
-            }
         }
     }
 }
+
+
+@Composable
+fun SittingOptins(
+    list: sitting,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .clickable { onClick() }     // <-- User clicks this row
+    ) {
+
+        Text(
+            text = list.name,
+            fontSize = 20.sp,
+            color = Color.White
+        )
+
+        if (list.menu.isNotEmpty()) {
+            Text(
+                text = list.menu,
+                fontSize = 14.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
+
+        Divider(
+            color = Color.DarkGray,
+            thickness = 1.dp,
+            modifier = Modifier.padding(top = 12.dp)
+        )
+    }
+}
+
+
