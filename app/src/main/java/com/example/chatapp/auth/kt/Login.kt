@@ -12,7 +12,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.chatapp.LoginDataStore
+import com.example.chatapp.network.LoginRequest
 import kotlinx.coroutines.launch
+import com.example.chatapp.network.RetrofitClient
 
 @Composable
 fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit ) {
@@ -55,18 +57,40 @@ fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit ) {
         Button(
             modifier = Modifier.fillMaxWidth(),
             onClick = {
-            if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(context, "Enter email and password", Toast.LENGTH_SHORT).show()
-            } else {
-                // Save email in DataStore
-                scope.launch {
-                    LoginDataStore.saveEmail(context, email)
-                    onLoginSuccess()
+                if (email.isEmpty() || password.isEmpty()) {
+                    Toast.makeText(context, "Enter email and password", Toast.LENGTH_SHORT).show()
+                } else {
+                    scope.launch {
+                        try {
+                            // 1. Call backend
+                            val response = RetrofitClient.api.login(
+                                LoginRequest(email, password)
+                            )
+
+                            // 2. Check response
+                            if (response.success) {
+                                Toast.makeText(context, response.message, Toast.LENGTH_SHORT).show()
+
+                                // 3. Save email or token
+                                LoginDataStore.saveEmail(context, email)
+
+                                // 4. Navigate to home screen
+                                onLoginSuccess()
+
+                            } else {
+                                Toast.makeText(context, response.message, Toast.LENGTH_SHORT).show()
+                            }
+
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                        }
+                    }
                 }
             }
-        }) {
+        ) {
             Text("Login")
         }
+
         Button(onClick = { navController.navigate("signin") }) {
             Text("Create Account")
         }

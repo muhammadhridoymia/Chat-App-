@@ -63,6 +63,26 @@ fun ProfileScreen(navController: NavHostController) {
                 IconButton(onClick = {navController.navigate("home") }) {
                     Icon(Icons.Default.ArrowBack , contentDescription = "back")
                 }
+                Column(
+                    modifier = Modifier.padding(start = 16.dp)
+
+                ) {
+                    Row(
+                        modifier = Modifier,
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+
+
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = 5.dp)
+                                .size(50.dp)
+                                .background(Color.Gray, shape = CircleShape)
+                        )
+                        Text("Hridoy" , color = Color.White , fontSize = 20.sp)
+                    }
+                }
             }
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
