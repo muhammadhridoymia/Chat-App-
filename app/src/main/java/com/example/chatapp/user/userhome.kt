@@ -23,23 +23,8 @@ import androidx.navigation.NavHostController
 import com.example.chatapp.LoginDataStore
 import com.example.chatapp.network.FriendResponse
 import com.example.chatapp.network.RetrofitClient
-import kotlinx.coroutines.launch
 
-// --- Data classes ---
-data class ActiveUser(val name: String)
-val activeUsers = listOf(
-    ActiveUser("Alice"),
-    ActiveUser("Bob"),
-    ActiveUser("Charlie"),
-    ActiveUser("David"),
-    ActiveUser("Eva")
-)
-
-data class Chat(val name: String, val lastMessage: String)
-
-// (removed duplicate backend mapping — using network.FriendResponse from the shared model)
-
-// --- HomeScreen ---
+data class Chat(val name: String, val isonline: Boolean, val id: String )
 @Composable
 fun HomeScreen(navController: NavHostController) {
     val context = LocalContext.current
@@ -63,8 +48,6 @@ fun HomeScreen(navController: NavHostController) {
             } finally {
                 isLoading = false
             }
-        }else{
-            Toast.makeText(context, "User ID not found", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -134,8 +117,8 @@ fun HomeScreen(navController: NavHostController) {
                 contentPadding = PaddingValues(horizontal = 20.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(activeUsers) { user ->
-                    ActiveUserItem(user = user, navController = navController)
+                items(friends) { user ->
+                    ActiveUserItem(user = Chat(user.name,user.isonline, user.id), navController = navController)
                 }
             }
 
@@ -163,7 +146,7 @@ fun HomeScreen(navController: NavHostController) {
 
                     items(filteredFriends) { friend ->
                         ChatItem(
-                            chat = Chat(friend.name, if (friend.isonline) "Online" else "Offline"),
+                            chat = Chat(friend.name,friend.isonline, friend.id),
                             navController = navController
                         )
                     }
