@@ -1,73 +1,80 @@
 package com.example.chatapp.user
 
+import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.navigation.NavHostController
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import com.example.chatapp.LoginDataStore
+import com.example.chatapp.network.FriendResponse
+import com.example.chatapp.network.RetrofitClient
+import kotlinx.coroutines.launch
 
-
-
-data class ActiveUser(
-    val name: String
-)
+// --- Data classes ---
+data class ActiveUser(val name: String)
 val activeUsers = listOf(
     ActiveUser("Alice"),
     ActiveUser("Bob"),
     ActiveUser("Charlie"),
     ActiveUser("David"),
-    ActiveUser("Eva"),
-    ActiveUser("Charlie"),
-    ActiveUser("David"),
     ActiveUser("Eva")
 )
 
-data class Chat(
-    val name: String,
-    val lastMessage: String
-)
+data class Chat(val name: String, val lastMessage: String)
 
+// (removed duplicate backend mapping — using network.FriendResponse from the shared model)
+
+// --- HomeScreen ---
 @Composable
 fun HomeScreen(navController: NavHostController) {
-    var input by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
-    // Example chat list
-    val chats = listOf(
-        Chat("Hridoy", "Hey! How are you?"),
-        Chat("Riaz", "Let's meet tomorrow."),
-        Chat("Sabbir", "Did you see the news?"),
-        Chat("Shadhin", "Call me when free."),
-        Chat("Rakib", "Good night!"),
-        Chat("Alice", "Hey! How are you?"),
-        Chat("Bob", "Let's meet tomorrow."),
-        Chat("Charlie", "Did you see the news?"),
-        Chat("David", "Call me when free."),
-        Chat("Eva", "Good night!"),
-    )
+    // Get userId from DataStore
+    val userId by LoginDataStore.getId(context).collectAsState(initial = "")
+
+    var friends by remember { mutableStateOf<List<FriendResponse>>(emptyList()) }
+    var input by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(true) }
+
+    // Fetch friends from backend
+    LaunchedEffect(userId) {
+        if (userId.isNotEmpty()) {
+            try {
+                friends = RetrofitClient.friendApi.getFriends(userId)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(context, "Error fetching chats: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                isLoading = false
+            }
+        }else{
+            Toast.makeText(context, "User ID not found", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Scaffold(
         bottomBar = {
-            NavigationBar(
-                modifier = Modifier
-                    .height(60.dp),
-            ) {
+            NavigationBar(modifier = Modifier.height(60.dp)) {
                 NavigationBarItem(
                     selected = false,
                     onClick = { navController.navigate("profile") },
-                    icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Home") },
+                    icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Profile") },
                     label = { Text("Profile") }
                 )
                 NavigationBarItem(
@@ -76,11 +83,11 @@ fun HomeScreen(navController: NavHostController) {
                     icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
                     label = { Text("Home") }
                 )
-                NavigationBarItem (
+                NavigationBarItem(
                     selected = false,
                     onClick = { navController.navigate("notification") },
                     icon = { Icon(Icons.Default.Notifications, contentDescription = "Notifications") },
-                    label = { Text("Notifications")}
+                    label = { Text("Notifications") }
                 )
             }
         }
@@ -95,7 +102,7 @@ fun HomeScreen(navController: NavHostController) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
+                    .height(50.dp)
             ) {
                 Text(
                     modifier = Modifier
@@ -118,6 +125,7 @@ fun HomeScreen(navController: NavHostController) {
                     .padding(horizontal = 16.dp, vertical = 0.dp),
                 shape = RoundedCornerShape(20.dp),
             )
+
             // Active Users
             LazyRow(
                 modifier = Modifier
@@ -127,27 +135,40 @@ fun HomeScreen(navController: NavHostController) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(activeUsers) { user ->
-                    ActiveUserItem(user=user,navController=navController)
+                    ActiveUserItem(user = user, navController = navController)
                 }
             }
 
             // Chat List
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(vertical = 8.dp)
-            ) {
-                // Filter chats based on search input
-                val filteredChats = chats.filter {
-                    it.name.contains(input, ignoreCase = true) ||
-                            it.lastMessage.contains(input, ignoreCase = true)
-                }
+            if (isLoading) {
+                Text(
+                    text = "Loading...",
+                    color = Color.White,
+                    modifier = Modifier.padding(16.dp)
+                )
+            } else if (friends.isEmpty()) {
+                Text(
+                    text = "No friends found",
+                    color = Color.White,
+                    modifier = Modifier.padding(16.dp)
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ) {
+                    val filteredFriends = friends.filter {
+                        it.name.contains(input, ignoreCase = true)
+                    }
 
-                items(filteredChats) { chat ->
-                    ChatItem(chat=chat, navController = navController)
+                    items(filteredFriends) { friend ->
+                        ChatItem(
+                            chat = Chat(friend.name, if (friend.isonline) "Online" else "Offline"),
+                            navController = navController
+                        )
+                    }
                 }
             }
         }
     }
 }
-
-

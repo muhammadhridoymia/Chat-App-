@@ -68,11 +68,11 @@ fun LoginScreen(navController: NavHostController, onLoginSuccess: () -> Unit ) {
                             )
 
                             // 2. Check response
-                            if (response.success) {
+                            if (response.user!= null) {
                                 Toast.makeText(context, response.message, Toast.LENGTH_SHORT).show()
 
                                 // 3. Save email or token
-                                LoginDataStore.saveEmail(context, email)
+                                LoginDataStore.userSave(context,response.user!!.name,response.user!!.email,response.user!!.id)
 
                                 // 4. Navigate to home screen
                                 onLoginSuccess()

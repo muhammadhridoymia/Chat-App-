@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.runtime.collectAsState
 import com.example.chatapp.LoginDataStore
 import kotlinx.coroutines.launch
 
@@ -42,10 +43,13 @@ val SittingList= listOf(
     ,sitting("Log out" , menu = "")
 
 )
+
 @Composable
 fun ProfileScreen(navController: NavHostController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    val userName = LoginDataStore.getName(context).collectAsState(initial = "").value
 
     Scaffold { paddingValues ->
         Column(
@@ -80,7 +84,7 @@ fun ProfileScreen(navController: NavHostController) {
                                 .size(50.dp)
                                 .background(Color.Gray, shape = CircleShape)
                         )
-                        Text("Hridoy" , color = Color.White , fontSize = 20.sp)
+                        Text(userName , color = Color.White , fontSize = 20.sp)
                     }
                 }
             }

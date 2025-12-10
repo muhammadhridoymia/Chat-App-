@@ -19,7 +19,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.chatapp.user.Chat
 
 @Composable
 fun ChatItem(chat: Chat, navController: NavHostController) {
@@ -27,7 +26,7 @@ fun ChatItem(chat: Chat, navController: NavHostController) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable { navController.navigate("message/${chat.name}") },
+            .clickable { navController.navigate("message/${chat.name}/${chat.id}/${chat.isonline}") },
     ) {
         // Circle avatar placeholder
         Box(
@@ -48,9 +47,10 @@ fun ChatItem(chat: Chat, navController: NavHostController) {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = chat.lastMessage,
+                text = if(chat.isonline) "Online" else "Offline",
+                modifier = Modifier.padding(bottom = 4.dp),
                 fontSize = 14.sp,
-                color = Color.Green
+                color = if (chat.isonline) Color.Green else Color.Gray
             )
         }
     }

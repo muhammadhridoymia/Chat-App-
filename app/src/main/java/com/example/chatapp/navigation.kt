@@ -29,7 +29,7 @@ fun Navigation() {
 
     val context = LocalContext.current
 
-    val emailFlow = LoginDataStore.getEmail(context)
+    val emailFlow = LoginDataStore.getName(context)
     val email by emailFlow.collectAsState(initial = "")
 
     val startDestination = if (email.isNotEmpty()) "home" else "login"
@@ -54,11 +54,17 @@ fun Navigation() {
         }
 
         composable(
-            route = "message/{name}",
-            arguments = listOf(navArgument("name") { type = NavType.StringType })
+            route = "message/{name}/{id}/{isonline}",
+            arguments = listOf(
+                navArgument("name") { type = NavType.StringType },
+                navArgument("id") { type = NavType.StringType },
+                navArgument("isonline") { type = NavType.BoolType }
+                )
         ) { backStackEntry ->
             val name = backStackEntry.arguments?.getString("name")
-            MessagePage(name = name ?: "")
+            val id =backStackEntry.arguments?.getString("id")
+            val isonline =backStackEntry.arguments?.getBoolean("isonline")
+            MessagePage(name = name ?: "",id=id?:"",isonline=isonline?:false)
         }
 
         composable("login") {
