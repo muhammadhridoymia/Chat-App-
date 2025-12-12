@@ -69,5 +69,6 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
 
+    implementation("io.socket:socket.io-client:2.1.0")
 
 }

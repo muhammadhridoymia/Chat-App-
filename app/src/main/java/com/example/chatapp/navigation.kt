@@ -11,7 +11,7 @@ import com.example.chatapp.user.NotificationsScreen
 import  com.example.chatapp.user.MessagePage
 import  com.example.chatapp.auth.LoginScreen
 import com.example.chatapp.auth.SigninScreen
-
+import com.example.chatapp.user.FindFriends
 
 
 import androidx.compose.runtime.collectAsState
@@ -51,6 +51,9 @@ fun Navigation() {
 
         composable("notification") {
             NotificationsScreen()
+        }
+        composable("invite") {
+            FindFriends(navController = navController)
         }
 
         composable(

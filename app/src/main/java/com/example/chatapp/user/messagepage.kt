@@ -42,7 +42,8 @@ import com.example.chatapp.network.RetrofitClient
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.Spacer
-
+import androidx.compose.runtime.DisposableEffect
+import com.example.chatapp.network.SocketManager
 
 
 @Composable
@@ -51,6 +52,7 @@ fun MessagePage(name: String, id: String, isonline: Boolean) {
     val context = LocalContext.current
     val userId by LoginDataStore.getId(context).collectAsState(initial = "")
 
+    var messageText by remember { mutableStateOf("") }
     var messages by remember { mutableStateOf<List<ChatMessage>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
@@ -65,6 +67,32 @@ fun MessagePage(name: String, id: String, isonline: Boolean) {
             } finally {
                 isLoading = false
             }
+        }
+    }
+
+    // Initialize Socket
+    LaunchedEffect(userId) {
+        if (userId.isNotEmpty()) {
+            SocketManager.initSocket()
+            SocketManager.joinRoom(userId)
+
+            SocketManager.onMessageReceived { newMessage ->
+                messages = messages + newMessage
+            }
+
+            try {
+                messages = RetrofitClient.oldmessages.getMessages(userId, id)
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            SocketManager.disconnect()
         }
     }
 
@@ -152,13 +180,18 @@ fun MessagePage(name: String, id: String, isonline: Boolean) {
                 }
 
                 TextField(
-                    value = "",
-                    onValueChange = {},
+                    value = messageText,
+                    onValueChange = {messageText=it},
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(10.dp),
                 )
 
-                IconButton(onClick = {}) {
+                IconButton(onClick = {
+                    if (messageText.isNotBlank()) {
+                        SocketManager.sendMessage(userId, id, messageText)
+                        messageText = ""
+                    }
+                }) {
                     Icon(Icons.Default.Send, contentDescription = "Send")
                 }
             }
