@@ -1,5 +1,6 @@
 package com.example.chatapp.user
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -27,13 +29,19 @@ import androidx.navigation.NavHostController
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import com.example.chatapp.LoginDataStore
 import com.example.chatapp.network.RetrofitClient
 import kotlinx.coroutines.launch
 import com.example.chatapp.network.SingleUserResponse
+import com.example.chatapp.network.sendfriendReq
 
 
 @Composable
 fun FindFriends(navController: NavHostController) {
+
+    val context = LocalContext.current
+    val fromId by LoginDataStore.getId(context).collectAsState(initial = "")
 
     var email by remember { mutableStateOf("") }
     var user by remember { mutableStateOf<SingleUserResponse?>(null) }
@@ -44,7 +52,7 @@ fun FindFriends(navController: NavHostController) {
      fun searchUser() {
         coroutine.launch {
             try {
-                val response = RetrofitClient.findfrined.findUserByEmail(email)
+                val response = RetrofitClient.findfrineds.findUserByEmail(email)
                 user = response
                 errorMessage = null
             } catch (e: Exception) {
@@ -53,6 +61,20 @@ fun FindFriends(navController: NavHostController) {
                 return@launch
             }
 
+        }
+    }
+    fun SendFriendRequest(){
+        val toId = user?.user?._id
+
+        coroutine.launch {
+            try {
+                val response = RetrofitClient.sendFriendReqs.sendRequest(sendfriendReq(fromId, toId!!))
+                if(response.message!==null){
+                    Toast.makeText(context, response.message, Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -111,7 +133,7 @@ fun FindFriends(navController: NavHostController) {
 
                     Text(found.user.name)
 
-                    Button(onClick = { /* Add Friend */ }) {
+                    Button(onClick = { SendFriendRequest() }) {
                         Text("Add")
                     }
                 }

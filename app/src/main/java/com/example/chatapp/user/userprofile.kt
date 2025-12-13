@@ -35,7 +35,7 @@ val SittingList= listOf(
     // Added a small spacing for better readability in the list of settings
     sitting("Account" , menu = "Security notifications , Change number"),
     sitting("Add Friends" , menu = "Block contacts , Disallow messages"),
-    sitting("Chats" , menu = "Theme , wallpapers , chat history"),
+    sitting("Friend Requests" , menu = "Theme , wallpapers , chat history"),
     sitting("Notifications" , menu = "Message , group ,calls"),
     sitting("Avatars" , menu = "Create,edit ,profile photo"),
     sitting("Storage and data" , menu = "Network usage , auto-download"),
@@ -124,9 +124,11 @@ fun ProfileScreen(navController: NavHostController) {
                             "Add Friends" -> {
                                 navController.navigate("invite")
                             }
-                            // Add other navigation/action logic here for other settings
-                            "Account" -> {/* navController.navigate("account_settings") */}
-                            // ...
+                            "Friend Requests" -> {
+                                navController.navigate("request")
+                            }
+                            //add more
+
                         }
 
                     }

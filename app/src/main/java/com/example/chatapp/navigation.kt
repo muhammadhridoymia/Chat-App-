@@ -12,6 +12,7 @@ import  com.example.chatapp.user.MessagePage
 import  com.example.chatapp.auth.LoginScreen
 import com.example.chatapp.auth.SigninScreen
 import com.example.chatapp.user.FindFriends
+import  com.example.chatapp.user.AllFriendRequestsScreen
 
 
 import androidx.compose.runtime.collectAsState
@@ -83,6 +84,9 @@ fun Navigation() {
         }
         composable("signin") {
             SigninScreen(navController=navController)
+        }
+        composable("request") {
+            AllFriendRequestsScreen(navController = navController)
         }
     }
 }
