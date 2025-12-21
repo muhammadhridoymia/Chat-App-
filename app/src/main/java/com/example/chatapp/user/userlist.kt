@@ -26,7 +26,7 @@ fun ChatItem(chat: Chat, navController: NavHostController) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable { navController.navigate("message/${chat.name}/${chat.id}/${chat.isonline}") },
+            .clickable { navController.navigate("message/${chat.name}/${chat.id}/${chat.isonline}/${chat.isGroup}") },
     ) {
         // Circle avatar placeholder
         Box(

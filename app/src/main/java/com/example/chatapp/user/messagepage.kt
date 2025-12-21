@@ -17,13 +17,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.chatapp.LoginDataStore
 import com.example.chatapp.network.ChatMessage
 import com.example.chatapp.network.RetrofitClient
 import com.example.chatapp.network.SocketManager
 
 @Composable
-fun MessagePage(name: String, id: String, isonline: Boolean) {
+fun MessagePage(navController: NavHostController, name: String, id: String, isonline: Boolean, isGroup: Boolean) {
 
     val context = LocalContext.current
     val userId by LoginDataStore.getId(context).collectAsState(initial = "")
@@ -31,6 +32,8 @@ fun MessagePage(name: String, id: String, isonline: Boolean) {
     var messageText by remember { mutableStateOf("") }
     var messages by remember { mutableStateOf<List<ChatMessage>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    var istyping by remember { mutableStateOf(false) }
+
 
     val listState = rememberLazyListState()
 
@@ -38,13 +41,18 @@ fun MessagePage(name: String, id: String, isonline: Boolean) {
     LaunchedEffect(userId) {
         if (userId.isNotEmpty()) {
             try {
-                messages = RetrofitClient.oldmessages.getMessages(userId, id)
+                if (isGroup){
+                    Toast.makeText(context, "This Group is not supported yet For now "+name+id, Toast.LENGTH_SHORT).show()
+                }else{
+                    messages = RetrofitClient.oldmessages.getMessages(userId, id)
 
-                SocketManager.initSocket()
-                SocketManager.joinRoom(userId)
+                }
 
                 SocketManager.onMessageReceived { newMessage ->
                     messages = messages + newMessage
+                }
+                SocketManager.onTyping { isTyping ->
+                    istyping = isTyping.isTyping
                 }
 
             } catch (e: Exception) {
@@ -88,7 +96,7 @@ fun MessagePage(name: String, id: String, isonline: Boolean) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                IconButton(onClick = { }) {
+                IconButton(onClick = {navController.navigate("home")}) {
                     Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back", tint = Color.White)
                 }
 
@@ -126,6 +134,14 @@ fun MessagePage(name: String, id: String, isonline: Boolean) {
                         horizontalArrangement =
                             if (msg.senderId == userId) Arrangement.End else Arrangement.Start
                     ) {
+                        //profile
+                        if (msg.senderId != userId) {
+                            Box(
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .background(color = Color.White, shape = RoundedCornerShape(50))
+                            )
+                        }
                         Box(
                             modifier = Modifier
                                 .background(
@@ -140,6 +156,16 @@ fun MessagePage(name: String, id: String, isonline: Boolean) {
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
+            if (istyping) {
+                Text(
+                    text = "$name is typing...",
+                    color = Color.Gray,
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .padding(start = 10.dp, bottom = 4.dp)
+                )
+            }
+
 
             // 🔹 BOTTOM BAR
             Row(

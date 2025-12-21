@@ -58,17 +58,20 @@ fun Navigation() {
         }
 
         composable(
-            route = "message/{name}/{id}/{isonline}",
+            route = "message/{name}/{id}/{isonline}/{isGroup}",
             arguments = listOf(
                 navArgument("name") { type = NavType.StringType },
                 navArgument("id") { type = NavType.StringType },
-                navArgument("isonline") { type = NavType.BoolType }
+                navArgument("isonline") { type = NavType.BoolType },
+                navArgument("isGroup") { type = NavType.BoolType },
                 )
         ) { backStackEntry ->
             val name = backStackEntry.arguments?.getString("name")
             val id =backStackEntry.arguments?.getString("id")
             val isonline =backStackEntry.arguments?.getBoolean("isonline")
-            MessagePage(name = name ?: "",id=id?:"",isonline=isonline?:false)
+            val isGroup =backStackEntry.arguments?.getBoolean("isGroup")
+
+            MessagePage(navController=navController,name = name ?: "",id=id?:"",isonline=isonline?:false,isGroup=isGroup?:false)
         }
 
         composable("login") {

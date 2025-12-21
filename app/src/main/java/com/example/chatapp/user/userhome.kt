@@ -22,26 +22,45 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.chatapp.LoginDataStore
 import com.example.chatapp.network.FriendResponse
+import com.example.chatapp.network.GroupResponse
 import com.example.chatapp.network.RetrofitClient
+import com.example.chatapp.network.SocketManager
 
-data class Chat(val name: String, val isonline: Boolean, val id: String )
+data class Chat(
+    val name: String,
+    val isonline: Boolean,
+    val id: String,
+    val isGroup: Boolean=false
+)
+
 @Composable
 fun HomeScreen(navController: NavHostController) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
 
     // Get userId from DataStore
     val userId by LoginDataStore.getId(context).collectAsState(initial = "")
 
     var friends by remember { mutableStateOf<List<FriendResponse>>(emptyList()) }
+    var groups by remember { mutableStateOf<List<GroupResponse>>(emptyList()) }
     var input by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(true) }
+    val chatList = mutableListOf<Chat>()
 
-    // Fetch friends from backend
+// Add friends
+    chatList.addAll(friends.map { Chat(it.name, it.isonline, it.id, isGroup = false) })
+
+// Add groups
+    chatList.addAll(groups.map { Chat(it.name, false, it._id, isGroup = true) })
+
+
+    // Fetch friends and Group from backend
     LaunchedEffect(userId) {
         if (userId.isNotEmpty()) {
             try {
                 friends = RetrofitClient.friendApi.getFriends(userId)
+                groups = RetrofitClient.groupApi.getMyGroups(userId)
+                SocketManager.initSocket()
+                SocketManager.joinRoom(userId)
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(context, "Error fetching chats: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -49,6 +68,7 @@ fun HomeScreen(navController: NavHostController) {
                 isLoading = false
             }
         }
+        //Fetch Group
     }
 
     Scaffold(
@@ -140,13 +160,13 @@ fun HomeScreen(navController: NavHostController) {
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
-                    val filteredFriends = friends.filter {
+                    val filteredFriends = chatList.filter {
                         it.name.contains(input, ignoreCase = true)
                     }
 
                     items(filteredFriends) { friend ->
                         ChatItem(
-                            chat = Chat(friend.name,friend.isonline, friend.id),
+                            chat = Chat(friend.name,friend.isonline, friend.id, friend.isGroup),
                             navController = navController
                         )
                     }

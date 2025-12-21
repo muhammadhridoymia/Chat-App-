@@ -30,7 +30,7 @@ interface ApiService {
 
 
 object RetrofitClient {
-    private const val BASE_URL = "http://172.172.5.238:5000/"
+    private const val BASE_URL = "http://172.172.7.251:5000/"
 
     val api: ApiService by lazy {
         Retrofit.Builder()
@@ -78,6 +78,13 @@ object RetrofitClient {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(fetchFriends::class.java)
+    }
+    val groupApi: GroupApi by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(GroupApi::class.java)
     }
 
 }
