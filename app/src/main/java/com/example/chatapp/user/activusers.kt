@@ -28,7 +28,7 @@ fun ActiveUserItem(user: Chat, navController: NavHostController) {
         modifier = Modifier
             .padding(horizontal = 8.dp)
             .clickable {
-                navController.navigate("message/${user.name}/${user.id}/${user.isonline}")
+                navController.navigate("message/${user.name}/${user.id}/${user.isonline}/${user.isGroup}")
             }
     ) {
         Box(

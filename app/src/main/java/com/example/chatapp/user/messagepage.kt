@@ -20,8 +20,16 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.chatapp.LoginDataStore
 import com.example.chatapp.network.ChatMessage
+import com.example.chatapp.network.OldGroupResponse
 import com.example.chatapp.network.RetrofitClient
 import com.example.chatapp.network.SocketManager
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.util.*
+
+
+
 
 @Composable
 fun MessagePage(navController: NavHostController, name: String, id: String, isonline: Boolean, isGroup: Boolean) {
@@ -33,22 +41,30 @@ fun MessagePage(navController: NavHostController, name: String, id: String, ison
     var messages by remember { mutableStateOf<List<ChatMessage>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var istyping by remember { mutableStateOf(false) }
+    var isUserTyping by remember { mutableStateOf(false) }
+    var typingJob by remember { mutableStateOf<Job?>(null) }
+    val scope = rememberCoroutineScope()
+
+
 
 
     val listState = rememberLazyListState()
 
-    // 🔹 Load old messages + init socket (ONLY ONCE)
+    // 🔹 Load old messages
     LaunchedEffect(userId) {
         if (userId.isNotEmpty()) {
             try {
                 if (isGroup){
-                    Toast.makeText(context, "This Group is not supported yet For now "+name+id, Toast.LENGTH_SHORT).show()
+                    messages= RetrofitClient.oldgroupmessages.getoldgroupmessage(id)
                 }else{
                     messages = RetrofitClient.oldmessages.getMessages(userId, id)
 
                 }
 
                 SocketManager.onMessageReceived { newMessage ->
+                    messages = messages + newMessage
+                }
+                SocketManager.onGroupMessageReceived { newMessage ->
                     messages = messages + newMessage
                 }
                 SocketManager.onTyping { isTyping ->
@@ -72,6 +88,7 @@ fun MessagePage(navController: NavHostController, name: String, id: String, ison
 
     DisposableEffect(Unit) {
         onDispose {
+            SocketManager.socket.off("typing")
             SocketManager.disconnect()
         }
     }
@@ -150,7 +167,14 @@ fun MessagePage(navController: NavHostController, name: String, id: String, ison
                                 )
                                 .padding(10.dp)
                         ) {
-                            Text(msg.message, color = Color.White)
+                            if(msg.senderId==userId){
+                                if(msg.seen){
+                                    Text("✔✔")
+                                }else{
+                                    Text("")
+                                }
+                            }
+                            Text(msg.message , color = Color.White)
                         }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
@@ -159,7 +183,7 @@ fun MessagePage(navController: NavHostController, name: String, id: String, ison
             if (istyping) {
                 Text(
                     text = "$name is typing...",
-                    color = Color.Gray,
+                    color = Color.Green,
                     fontSize = 12.sp,
                     modifier = Modifier
                         .padding(start = 10.dp, bottom = 4.dp)
@@ -189,16 +213,35 @@ fun MessagePage(navController: NavHostController, name: String, id: String, ison
 
                 TextField(
                     value = messageText,
-                    onValueChange = { messageText = it },
+                    onValueChange = { text ->
+                        SocketManager.handleTyping(
+                            text = text,
+                            userId = userId,
+                            targetId = id,
+                            isGroup = isGroup,
+                            scope = scope,
+                            typingJobState = mutableStateOf(typingJob),
+                            isUserTypingState = mutableStateOf(isUserTyping)
+                        ) {
+
+                            messageText = it
+                        }
+                    },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                     maxLines = 1
                 )
 
+
                 IconButton(onClick = {
                     if (messageText.isNotBlank()) {
-                        SocketManager.sendMessage(userId, id, messageText)
-                        messageText = ""
+                        if(isGroup){
+                            SocketManager.onGroupSendMessage(userId, id, messageText)
+                            messageText = ""
+                        }else{
+                            SocketManager.sendMessage(userId, id, messageText)
+                            messageText = ""
+                        }
                     }
                 }) {
                     Icon(Icons.Default.Send, contentDescription = "Send", tint = Color.White)

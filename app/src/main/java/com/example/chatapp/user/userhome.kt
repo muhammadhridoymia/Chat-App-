@@ -137,8 +137,8 @@ fun HomeScreen(navController: NavHostController) {
                 contentPadding = PaddingValues(horizontal = 20.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(friends) { user ->
-                    ActiveUserItem(user = Chat(user.name,user.isonline, user.id), navController = navController)
+                items(chatList) { user ->
+                    ActiveUserItem(user = Chat(user.name,user.isonline, user.id,isGroup=user.isGroup), navController = navController)
                 }
             }
 

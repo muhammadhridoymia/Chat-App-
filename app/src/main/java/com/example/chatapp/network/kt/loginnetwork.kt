@@ -86,6 +86,13 @@ object RetrofitClient {
             .build()
             .create(GroupApi::class.java)
     }
+    val oldgroupmessages: oldmessageapi by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(oldmessageapi::class.java)
+    }
 
 }
 
