@@ -22,15 +22,17 @@ data class TypingStatus(
 
 data class ChatMessage(
     val senderId: String,
-    val receiverId: String?=null,
-    val message: String,
-    val createdAt: String?=null,
+    val receiverId: String? =null,
+    val message: String? = null,
+    val createdAt: String? =null,
     val groupId: String? = null,
     val seen: Boolean,
+    val img: List<String> = emptyList(),
+    val voice: String? = null
 )
 
 object SocketManager {
-    private const val SOCKET_URL = "http://172.172.7.251:5000"
+    private const val SOCKET_URL = "http://10.20.226.64:5000"
 
     lateinit var socket: Socket
 
@@ -49,7 +51,7 @@ object SocketManager {
         socket.emit("joinRoom", userId)
     }
 
-fun sendMessage(senderId: String, receiverId: String, message: String) {
+fun sendMessage(senderId: String, receiverId: String, message: String,) {
     try {
         val data = JSONObject().apply {
             put("senderId", senderId)
@@ -63,12 +65,13 @@ fun sendMessage(senderId: String, receiverId: String, message: String) {
 }
 
 
-    fun onGroupSendMessage(senderId: String, groupId: String, message: String) {
+    fun onGroupSendMessage(senderId: String, groupId: String, message: String, img: List<String>? = null,) {
         try {
             val data = JSONObject().apply {
                 put("senderId", senderId)
                 put("groupId", groupId)
                 put("message", message)
+                img?.let { put("img", it) }
             }
             socket.emit("sendGroupMessage", data)
         } catch (e: Exception) {
@@ -79,30 +82,63 @@ fun sendMessage(senderId: String, receiverId: String, message: String) {
 
     fun onMessageReceived(callback: (ChatMessage) -> Unit) {
         socket.on("receiveMessage") { args ->
-            if (args.isNotEmpty()) {
-                val json = args[0] as JSONObject
-                val msg = ChatMessage(
-                    senderId = json.getString("senderId"),
-                    receiverId = json.getString("receiverId"),
-                    message = json.getString("message"),
-                    createdAt = json.getString("createdAt"),
-                    seen = json.getBoolean("seen")
-                )
-                callback(msg)
+            try {
+                if (args.isNotEmpty()) {
+                    val json = args[0] as JSONObject
+                    val imgList = mutableListOf<String>()
+                    if (json.has("img") && !json.isNull("img")) {
+                        val jsonArray = json.optJSONArray("img")
+                        if (jsonArray != null) {
+                            for (i in 0 until jsonArray.length()) {
+                                imgList.add(jsonArray.getString(i))
+                            }
+                        } else {
+                            val singleImg = json.optString("img", "")
+                            if (singleImg.isNotEmpty()) imgList.add(singleImg)
+                        }
+                    }
+
+                    val msg = ChatMessage(
+                        senderId = json.getString("senderId"),
+                        receiverId = json.optString("receiverId", null),
+                        message = json.getString("message"),
+                        img = imgList,
+                        voice = json.optString("voice", null),
+                        createdAt = json.optString("createdAt", null),
+                        seen = json.optBoolean("seen", false)
+                    )
+                    callback(msg)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
+
 
     fun onGroupMessageReceived(callback: (ChatMessage) -> Unit) {
         socket.on("receiveGroupMessage") { args ->
             if (args.isNotEmpty()) {
                 val json = args[0] as JSONObject
+                val imgList = mutableListOf<String>()
+                if (json.has("img") && !json.isNull("img")) {
+                    val jsonArray = json.optJSONArray("img")
+                    if (jsonArray != null) {
+                        for (i in 0 until jsonArray.length()) {
+                            imgList.add(jsonArray.getString(i))
+                        }
+                    } else {
+                        val singleImg = json.optString("img", "")
+                        if (singleImg.isNotEmpty()) imgList.add(singleImg)
+                    }
+                }
                 val msg = ChatMessage(
                     senderId = json.getString("senderId"),
                     groupId =json.getString("groupId"),
                     message = json.getString("message"),
+                    img = imgList,
                     createdAt = json.getString("createdAt")
-                    ,seen = json.getBoolean("seen")
+                    , seen = json.getBoolean("seen")
                 )
                 callback(msg)
             }
@@ -172,7 +208,7 @@ fun sendMessage(senderId: String, receiverId: String, message: String) {
         // Stop typing (debounced)
         typingJobState.value?.cancel()
         typingJobState.value = scope.launch {
-            delay(1000)
+            delay(2000)
             isUserTypingState.value = false
             startTyping(
                 groupId = targetId,

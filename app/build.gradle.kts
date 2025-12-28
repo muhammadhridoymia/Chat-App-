@@ -71,4 +71,13 @@ dependencies {
 
     implementation("io.socket:socket.io-client:2.1.0")
 
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
+    implementation("com.google.android.exoplayer:exoplayer:2.19.1")
+    implementation("com.google.android.exoplayer:exoplayer-core:2.19.1")
+    implementation("com.google.android.exoplayer:exoplayer-ui:2.19.1")
+
+
+
+
 }

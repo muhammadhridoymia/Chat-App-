@@ -1,6 +1,10 @@
 package com.example.chatapp.user
 
+import VoiceMessage
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,15 +24,16 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.chatapp.LoginDataStore
 import com.example.chatapp.network.ChatMessage
-import com.example.chatapp.network.OldGroupResponse
 import com.example.chatapp.network.RetrofitClient
 import com.example.chatapp.network.SocketManager
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.*
-
-
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
+import org.jetbrains.annotations.Async
+import uploadAndSendImage
 
 
 @Composable
@@ -43,6 +48,8 @@ fun MessagePage(navController: NavHostController, name: String, id: String, ison
     var istyping by remember { mutableStateOf(false) }
     var isUserTyping by remember { mutableStateOf(false) }
     var typingJob by remember { mutableStateOf<Job?>(null) }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
     val scope = rememberCoroutineScope()
 
 
@@ -93,6 +100,20 @@ fun MessagePage(navController: NavHostController, name: String, id: String, ison
         }
     }
 
+    //Image piker
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            selectedImageUri = uri  // ✅ Now it works
+            scope.launch {
+                uploadAndSendImage(uri, userId, id, isGroup, context, messageText,)
+            }
+        }
+    }
+
+
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -139,11 +160,8 @@ fun MessagePage(navController: NavHostController, name: String, id: String, ison
 
             // 🔹 CHAT MESSAGES
             LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(10.dp)
+                modifier = Modifier.weight(1f).padding(10.dp),
+                state = listState
             ) {
                 items(messages) { msg ->
                     Row(
@@ -151,33 +169,65 @@ fun MessagePage(navController: NavHostController, name: String, id: String, ison
                         horizontalArrangement =
                             if (msg.senderId == userId) Arrangement.End else Arrangement.Start
                     ) {
-                        //profile
-                        if (msg.senderId != userId) {
-                            Box(
-                                modifier = Modifier
-                                    .size(20.dp)
-                                    .background(color = Color.White, shape = RoundedCornerShape(50))
-                            )
-                        }
+
                         Box(
                             modifier = Modifier
                                 .background(
                                     if (msg.senderId == userId) Color.Blue else Color.Gray,
-                                    shape = RoundedCornerShape(12.dp)
+                                    RoundedCornerShape(12.dp)
                                 )
                                 .padding(10.dp)
+                                .widthIn(max = 260.dp)
                         ) {
-                            if(msg.senderId==userId){
-                                if(msg.seen){
-                                    Text("✔✔")
-                                }else{
-                                    Text("")
+
+                            Column {
+
+                                // 🔹 TEXT
+                                msg.message?.let {
+                                    Text(it, color = Color.White)
+                                    Spacer(Modifier.height(4.dp))
+                                }
+
+                                // 🔹 MULTIPLE IMAGES
+                                if (msg.img.isNotEmpty()) {
+                                    LazyRow {
+                                        items(msg.img) { image ->
+                                            AsyncImage(
+                                                model = image,
+                                                contentDescription = null,
+                                                modifier = Modifier
+                                                    .size(120.dp)
+                                                    .padding(4.dp)
+                                                    .background(
+                                                        Color.Black,
+                                                        RoundedCornerShape(8.dp)
+                                                    ),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                    }
+                                }
+
+                                // 🔹 VOICE
+                                msg.voice?.let { voiceUrl ->
+                                    VoiceMessage(url = voiceUrl)
+                                    Spacer(Modifier.height(4.dp))
+                                }
+
+
+                                // 🔹 SEEN
+                                if (msg.senderId == userId) {
+                                    Text(
+                                        if (msg.seen) "✔✔ Seen" else "✔ Sent",
+                                        fontSize = 10.sp,
+                                        color = Color.White,
+                                        modifier = Modifier.align(Alignment.End)
+                                    )
                                 }
                             }
-                            Text(msg.message , color = Color.White)
                         }
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(Modifier.height(8.dp))
                 }
             }
             if (istyping) {
@@ -201,7 +251,7 @@ fun MessagePage(navController: NavHostController, name: String, id: String, ison
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                IconButton(onClick = {}) {
+                IconButton(onClick = {launcher.launch("image/*")}) {
                     Icon(Icons.Default.Photo, contentDescription = "Photo", tint = Color.White)
                 }
                 IconButton(onClick = {}) {
