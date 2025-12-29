@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.Exception
 
@@ -32,7 +33,7 @@ data class ChatMessage(
 )
 
 object SocketManager {
-    private const val SOCKET_URL = "http://10.20.226.64:5000"
+    private const val SOCKET_URL = "http://172.172.4.243:5000"
 
     lateinit var socket: Socket
 
@@ -51,12 +52,13 @@ object SocketManager {
         socket.emit("joinRoom", userId)
     }
 
-fun sendMessage(senderId: String, receiverId: String, message: String,) {
+fun sendMessage(senderId: String, receiverId: String, message: String,img: List<String>? = null) {
     try {
         val data = JSONObject().apply {
             put("senderId", senderId)
             put("receiverId", receiverId)
             put("message", message)
+            img?.let { put("img", JSONArray(it)) }
         }
         socket.emit("sendMessage", data)
     } catch (e: Exception) {
@@ -71,7 +73,7 @@ fun sendMessage(senderId: String, receiverId: String, message: String,) {
                 put("senderId", senderId)
                 put("groupId", groupId)
                 put("message", message)
-                img?.let { put("img", it) }
+                img?.let { put("img", JSONArray(it)) }
             }
             socket.emit("sendGroupMessage", data)
         } catch (e: Exception) {

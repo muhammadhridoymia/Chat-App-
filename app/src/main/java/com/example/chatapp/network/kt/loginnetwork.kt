@@ -25,6 +25,10 @@ data class LoginResponse(
     val message: String,
     val user: User?
 )
+data class ImageUploadResponse(
+    val urls: List<String>
+)
+
 
 interface ApiService {
     @POST("/api/users/login")
@@ -34,12 +38,12 @@ interface ApiService {
 interface UploadImageApi {
     @Multipart
     @POST("/api/users/upload/img")
-    suspend fun uploadImage(@Part img: MultipartBody.Part): String
+    suspend fun uploadImage(@Part img: MultipartBody.Part): ImageUploadResponse
 }
 
 
 object RetrofitClient {
-    private const val BASE_URL = "http://10.20.226.64:5000/"
+    private const val BASE_URL = "http://172.172.4.243:5000/"
 
     val api: ApiService by lazy {
         Retrofit.Builder()

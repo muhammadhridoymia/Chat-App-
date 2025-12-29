@@ -29,16 +29,22 @@ suspend fun uploadAndSendImage(
         val body = MultipartBody.Part.createFormData("images", tempFile.name, requestFile)
 
         // Call Retrofit to upload
-        val imageUrl = RetrofitClient.uploadImage.uploadImage(body)
+        val res= RetrofitClient.uploadImage.uploadImage(body)
+        val imageUrl=res.urls.first()
 
         // Send image via Socket
         if (isGroup) {
-            SocketManager.onGroupSendMessage(userId, targetId, message, listOf(imageUrl))
+            SocketManager.onGroupSendMessage(userId, targetId, message,listOf(imageUrl))
         } else {
-            SocketManager.sendMessage(userId, targetId, imageUrl)
+            SocketManager.sendMessage(userId, targetId, message, listOf(imageUrl))
         }
 
     } catch (e: Exception) {
-        Toast.makeText(context, "Image send failed: ${e.message}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            context,
+            "Image send failed:\n${e.message}",
+            Toast.LENGTH_LONG
+        ).show()
+
     }
 }
