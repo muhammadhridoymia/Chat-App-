@@ -9,7 +9,7 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 
 suspend fun uploadAndSendImage(
-    uri: Uri,
+    uris: List<Uri>,
     userId: String,
     targetId: String,
     isGroup: Boolean,
@@ -17,26 +17,25 @@ suspend fun uploadAndSendImage(
     message: String
 ) {
     try {
-        val inputStream = context.contentResolver.openInputStream(uri)
-        val tempFile = File(context.cacheDir, "upload.jpg")
-        inputStream?.use { input ->
-            tempFile.outputStream().use { output ->
-                input.copyTo(output)
+        val parts = uris.mapIndexed { index, uri ->
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val tempFile = File(context.cacheDir, "upload_$index.jpg")
+            inputStream?.use { input ->
+                tempFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
             }
+            val requestFile = tempFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
+            MultipartBody.Part.createFormData("images", tempFile.name, requestFile)
         }
 
-        val requestFile = tempFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
-        val body = MultipartBody.Part.createFormData("images", tempFile.name, requestFile)
+        val res = RetrofitClient.uploadImage.uploadImage(parts)
+        val imageUrls = res.urls
 
-        // Call Retrofit to upload
-        val res= RetrofitClient.uploadImage.uploadImage(body)
-        val imageUrl=res.urls.first()
-
-        // Send image via Socket
         if (isGroup) {
-            SocketManager.onGroupSendMessage(userId, targetId, message,listOf(imageUrl))
+            SocketManager.onGroupSendMessage(userId, targetId, message, imageUrls)
         } else {
-            SocketManager.sendMessage(userId, targetId, message, listOf(imageUrl))
+            SocketManager.sendMessage(userId, targetId, message, imageUrls)
         }
 
     } catch (e: Exception) {
@@ -45,6 +44,5 @@ suspend fun uploadAndSendImage(
             "Image send failed:\n${e.message}",
             Toast.LENGTH_LONG
         ).show()
-
     }
 }

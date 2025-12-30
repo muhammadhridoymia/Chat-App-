@@ -38,12 +38,12 @@ interface ApiService {
 interface UploadImageApi {
     @Multipart
     @POST("/api/users/upload/img")
-    suspend fun uploadImage(@Part img: MultipartBody.Part): ImageUploadResponse
+    suspend fun uploadImage(@Part img: List<MultipartBody.Part>): ImageUploadResponse
 }
 
 
 object RetrofitClient {
-    private const val BASE_URL = "http://172.172.4.243:5000/"
+    private const val BASE_URL = "http://172.172.5.127:5000/"
 
     val api: ApiService by lazy {
         Retrofit.Builder()

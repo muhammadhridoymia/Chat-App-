@@ -34,6 +34,7 @@ import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import org.jetbrains.annotations.Async
 import uploadAndSendImage
+import com.example.chatapp.user.component.ImageViewer
 
 
 @Composable
@@ -48,7 +49,7 @@ fun MessagePage(navController: NavHostController, name: String, id: String, ison
     var istyping by remember { mutableStateOf(false) }
     var isUserTyping by remember { mutableStateOf(false) }
     var typingJob by remember { mutableStateOf<Job?>(null) }
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedImageUri by remember { mutableStateOf<List<Uri>>(emptyList()) }
 
     val scope = rememberCoroutineScope()
 
@@ -102,15 +103,11 @@ fun MessagePage(navController: NavHostController, name: String, id: String, ison
 
     //Image piker
     val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        if (uri != null) {
-            selectedImageUri = uri  // ✅ Now it works
-            scope.launch {
-                uploadAndSendImage(uri, userId, id, isGroup, context, messageText,)
-            }
-        }
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris: List<Uri> ->
+        selectedImageUri = uris
     }
+
 
 
 
@@ -230,6 +227,15 @@ fun MessagePage(navController: NavHostController, name: String, id: String, ison
                     Spacer(Modifier.height(8.dp))
                 }
             }
+            //Image preview
+            ImageViewer(selectedImageUri = selectedImageUri
+                , onRemoveImage = { uri ->
+                    selectedImageUri = selectedImageUri.filterNot { it == uri }
+                })
+
+
+
+            //Typing indicator
             if (istyping) {
                 Text(
                     text = "$name is typing...",
@@ -284,6 +290,17 @@ fun MessagePage(navController: NavHostController, name: String, id: String, ison
 
 
                 IconButton(onClick = {
+                    // If image selected, upload and send
+                    if (selectedImageUri.isNotEmpty()) {
+                        scope.launch {
+                            uploadAndSendImage(selectedImageUri, userId, id, isGroup, context, messageText)
+                            selectedImageUri = emptyList() // clear preview
+                            messageText = ""
+                        }
+                    }
+
+
+                    // If no image, send message
                     if (messageText.isNotBlank()) {
                         if(isGroup){
                             SocketManager.onGroupSendMessage(userId, id, messageText)

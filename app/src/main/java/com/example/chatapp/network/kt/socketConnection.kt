@@ -33,7 +33,7 @@ data class ChatMessage(
 )
 
 object SocketManager {
-    private const val SOCKET_URL = "http://172.172.4.243:5000"
+    private const val SOCKET_URL = "http://172.172.5.127:5000"
 
     lateinit var socket: Socket
 
